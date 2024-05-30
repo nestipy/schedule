@@ -29,7 +29,7 @@ class AppService:
     @classmethod
     @Cron("0 0 * * *")  # all day at 00:00
     async def cron(cls):
-        print("Running every 2 seconds")
+        print("Running all day at 00:00")
 
     @classmethod
     @Interval(2)

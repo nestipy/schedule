@@ -3,17 +3,16 @@ from datetime import datetime, timedelta
 from typing import Annotated
 
 from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.date import DateTrigger
-
+from apscheduler.triggers.interval import IntervalTrigger
 from nestipy.common import Module
 from nestipy.core import DiscoverService
 from nestipy.dynamic_module import NestipyModule
 from nestipy.ioc import Inject
 from nestipy.metadata import Reflect
 
-from .schedule_metadata import ScheduleMetadata, ScheduleData
 from .schedule_builder import ConfigurableModuleClass, ScheduleOption, SCHEDULE_OPTION
+from .schedule_metadata import ScheduleMetadata, ScheduleData
 from .schedule_registry import SchedulerRegistry
 
 
@@ -28,10 +27,10 @@ class ScheduleModule(ConfigurableModuleClass, NestipyModule):
 
     async def on_startup(self):
         self.setup_all_jobs()
-        self._registry.get_scheduler().start()
+        self._registry.start()
 
     async def on_shutdown(self):
-        self._registry.get_scheduler().shutdown(wait=False)
+        self._registry.shutdown(wait=False)
 
     @classmethod
     def _is_schedule(cls, method: callable):
@@ -42,18 +41,17 @@ class ScheduleModule(ConfigurableModuleClass, NestipyModule):
             method, ScheduleMetadata.Schedule,
             ScheduleData(ScheduleMetadata.Timeout, 5000)
         )
-        scheduler = self._registry.get_scheduler()
         match schedule.schedule:
             case ScheduleMetadata.Cron:
                 trigger = CronTrigger.from_crontab(schedule.value, timezone=schedule.timezone)
-                return scheduler.add_job(method, trigger=trigger, id=schedule.name)
+                return self._registry.add_job(method, trigger=trigger, id=schedule.name)
             case ScheduleMetadata.Interval:
                 trigger = IntervalTrigger(seconds=schedule.value, timezone=schedule.timezone)
-                return scheduler.add_job(method, trigger=trigger, id=schedule.name)
+                return self._registry.add_job(method, trigger=trigger, id=schedule.name)
             case ScheduleMetadata.Timeout:
                 run_date = datetime.now(tz=schedule.timezone) + timedelta(milliseconds=schedule.value)
                 trigger = DateTrigger(run_date=run_date, timezone=schedule.timezone)
-                return scheduler.add_job(method, trigger=trigger, id=schedule.name)
+                return self._registry.add_job(method, trigger=trigger, id=schedule.name)
 
     def setup_all_jobs(self):
         instances = self._discovery.get_all_controller() + self._discovery.get_all_provider()

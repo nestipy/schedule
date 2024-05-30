@@ -2,7 +2,7 @@ from typing import Callable, Union, Any, Type
 
 from nestipy.metadata import SetMetadata
 
-from nestipy_schedule.schedule_metadata import ScheduleMetadata, ScheduleData
+from .schedule_metadata import ScheduleMetadata, ScheduleData
 
 
 def Cron(cron: str, timezone: str = None, name: str = None) -> Callable[[Union[Type, Callable[..., Any]]], Any]:
