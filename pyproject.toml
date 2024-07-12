@@ -9,7 +9,7 @@ packages = [{include = "nestipy_schedule", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 apscheduler = "^3.10.4"
-nestipy = "^0.4.10"
+nestipy = "^0.5.3"
 
 
 [build-system]
